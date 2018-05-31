@@ -110,13 +110,6 @@ function changelogretention_civicrm_navigationMenu(&$navMenu) {
  * @param array $logTableSpec
  */
 function changelogretention_civicrm_alterLogTables(&$logTableSpec) {
-  $tables_excluded = Civi::settings()->get('tables_excluded');
-  foreach (array_keys($logTableSpec) as $tableName) {
-    if( in_array($tableName, $tables_excluded) ){
-       unset($logTableSpec[$tableName]);
-    }
-  }
-  
   $contactReferences = CRM_Dedupe_Merger::cidRefs();
   foreach (array_keys($logTableSpec) as $tableName) {
     $contactIndexes = array();
