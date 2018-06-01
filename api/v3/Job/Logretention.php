@@ -24,10 +24,22 @@ function _civicrm_api3_job_logretention_spec(&$params) {
  * @throws API_Exception
  */
 function civicrm_api3_job_logretention($params) {
+  $logging = CRM_Core_Config::singleton()->logging;
+  $logging = CRM_Core_Config::singleton()->logging;
+  if (!CRM_Core_Config::singleton()->logging) {
+    $msg = ts('Logging is disabled');
+    CRM_Core_Session::setStatus($msg, ts('Warning: Loggin status'), 'alert');
+    return; //return if logging is disable
+  }
+  
   $dsn = defined('CIVICRM_LOGGING_DSN') ? DB::parseDSN(CIVICRM_LOGGING_DSN) : DB::parseDSN(CIVICRM_DSN);
   $loggingDB = $dsn['database']; //logging database
-  
-  $retention_period = Civi::settings()->get('retention_period'); //get retention period in months
+  $retention_period = Civi::settings()->get('retention_period');
+  if(!isset($retention_period) || empty($retention_period)){
+    $msg = ts('Retention period is not set of Log Retention Setting page. Set a value in months');
+    CRM_Core_Session::setStatus($msg, ts('Warning: Loggin status'), 'alert');
+    CRM_Utils_System::redirect('/civicrm/admin/logretention');
+  }
   $retention_unit = 'month';
   if($retention_period > 1){
     $retention_unit = 'months';
@@ -42,7 +54,10 @@ function civicrm_api3_job_logretention($params) {
   $customTables = $schema->entityCustomDataLogTables('Contact');
   $logTables = array();
   foreach($tables as $key=>$value) {
-    $logTables[] = 'log_'.$key;
+    if($value['engine'] == 'INNODB')
+      {
+         $logTables[] = 'log_'.$key;
+      }
   }
   $logTables = $logTables + $customTables;
   
@@ -64,7 +79,7 @@ function civicrm_api3_job_logretention($params) {
       $sql = "DELETE FROM `{$loggingDB}`.$table WHERE log_date < %1 AND log_date <> '$max_log_date'";
       $dao = CRM_Core_DAO::executeQuery($sql, $params);
       
-      $sql = "DELETE FROM `{$loggingDB}`.civicrm_log WHERE modified_date < %1 AND modified_date <> '$max_log_date'";
+      $sql = "DELETE FROM civicrm_log WHERE modified_date < %1 AND modified_date <> '$max_log_date'";
       $dao = CRM_Core_DAO::executeQuery($sql, $params);
     }
   }

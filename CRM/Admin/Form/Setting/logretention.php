@@ -65,7 +65,7 @@ class CRM_Admin_Form_Setting_logretention extends CRM_Admin_Form_Setting {
     foreach($tables as $table_name){
       $tableNames[$table_name] = 'log_'.$table_name;
     }
-    $this->addElement('advmultiselect', 'tables_excluded', ts('Select Tables to Exclude from logging'), $tableNames, array('class' => 'crm-select', 'size' => 10, 'style' => 'width:300px'));
+    $this->addElement('advmultiselect', 'tables_excluded', ts('Select logging tables to exclude from purging process'), $tableNames, array('class' => 'crm-select', 'size' => 10, 'style' => 'width:300px'));
    
     $this->addFormRule(array('CRM_Admin_Form_Setting_logretention', 'formRule'), $this);
     
