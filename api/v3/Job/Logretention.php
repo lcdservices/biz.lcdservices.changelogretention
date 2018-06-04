@@ -8,10 +8,6 @@
  * @see http://wiki.civicrm.org/confluence/display/CRM/API+Architecture+Standards
  */
 function _civicrm_api3_job_logretention_spec(&$params) {
-  $params['runInNonProductionEnvironment'] = array(
-    'title' => 'Run in Development?',
-    'type' => CRM_Utils_Type::T_BOOLEAN,
-  );
 }
 
 /**
@@ -24,21 +20,15 @@ function _civicrm_api3_job_logretention_spec(&$params) {
  * @throws API_Exception
  */
 function civicrm_api3_job_logretention($params) {
-  $logging = CRM_Core_Config::singleton()->logging;
-  $logging = CRM_Core_Config::singleton()->logging;
   if (!CRM_Core_Config::singleton()->logging) {
-    $msg = ts('Logging is disabled');
-    CRM_Core_Session::setStatus($msg, ts('Warning: Loggin status'), 'alert');
-    return; //return if logging is disable
+    return civicrm_api3_create_error('Logging must be enabled in order to use this API.');
   }
   
   $dsn = defined('CIVICRM_LOGGING_DSN') ? DB::parseDSN(CIVICRM_LOGGING_DSN) : DB::parseDSN(CIVICRM_DSN);
   $loggingDB = $dsn['database']; //logging database
   $retention_period = Civi::settings()->get('retention_period');
   if(!isset($retention_period) || empty($retention_period)){
-    $msg = ts('Retention period is not set of Log Retention Setting page. Set a value in months');
-    CRM_Core_Session::setStatus($msg, ts('Warning: Loggin status'), 'alert');
-    CRM_Utils_System::redirect('/civicrm/admin/logretention');
+    return civicrm_api3_create_error('Please set a retention period value in the Log Retention Settings before using this API.');
   }
   $retention_unit = 'month';
   if($retention_period > 1){
@@ -53,11 +43,14 @@ function civicrm_api3_job_logretention($params) {
   // build _logTables for custom tables
   $customTables = $schema->entityCustomDataLogTables('Contact');
   $logTables = array();
+  $excludeLogTables = array();
   foreach($tables as $key=>$value) {
-    if($value['engine'] == 'INNODB')
-      {
-         $logTables[] = 'log_'.$key;
-      }
+    if($value['engine'] == 'INNODB'){
+       $logTables[] = 'log_'.$key;
+    }
+    else{
+      $excludeLogTables[] = 'log_'.$key;
+    }
   }
   $logTables = $logTables + $customTables;
   
