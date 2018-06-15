@@ -57,34 +57,52 @@ function civicrm_api3_job_logretention($params) {
   $params = array(
     1 => array($ages_ago, 'String'),
   );
-  
+  //Civi::log()->debug('logretention', ['params' => $params]);
 
-  $tables_excluded = Civi::settings()->get('tables_excluded');//get tables excluded from log retention
-  if( !isset($tables_excluded) || empty($tables_excluded) ){
+  //get tables excluded from log retention
+  $tables_excluded = Civi::settings()->get('tables_excluded');
+  if (empty($tables_excluded)){
     $tables_excluded = array();
   }
   foreach($logTables as $table){
-    if( !in_array($table, $tables_excluded) ){
-      
-      $entity_id = "SELECT id FROM `{$loggingDB}`.$table GROUP BY id";
+    if (!in_array($table, $tables_excluded)){
+      $entity_id = "
+        SELECT id
+        FROM `{$loggingDB}`.$table
+        GROUP BY id
+      ";
       $entity_data = CRM_Core_DAO::executeQuery($entity_id);
+
       while ($entity_data->fetch()) {
         $id = $entity_data->id;
-        $max_log_date = '';
-        $fetch_data = "SELECT max(log_date) as max_log_date FROM `{$loggingDB}`.$table WHERE log_date < %1 AND id = $id";
-        $fetch_dao = CRM_Core_DAO::executeQuery($fetch_data, $params);
-        while ($fetch_dao->fetch()) {
-          $max_log_date = $fetch_dao->max_log_date;
-           echo '<pre>';
-            print_r($max_log_date);
-            echo '</pre>';
+
+        $daoMaxDate = "
+          SELECT max(log_date) as max_log_date
+          FROM `{$loggingDB}`.$table
+          WHERE log_date < %1
+            AND id = $id
+          LIMIT 1
+        ";
+        $max_log_date = CRM_Core_DAO::singleValueQuery($daoMaxDate, $params);
+
+        if ($max_log_date) {
+          $sql = "
+            DELETE FROM `{$loggingDB}`.$table 
+            WHERE log_date < %1 
+              AND log_date <> '$max_log_date' 
+              AND id = $id
+          ";
+          //Civi::log()->debug('logretention', ['max_log_date' => $max_log_date, 'sql' => $sql]);
+          CRM_Core_DAO::executeQuery($sql, $params);
+
+          $sql = "
+            DELETE FROM civicrm_log
+            WHERE modified_date < %1
+              AND modified_date <> '$max_log_date'
+              AND entity_id = $id
+            ";
+          CRM_Core_DAO::executeQuery($sql, $params);
         }
-        
-        $sql = "DELETE FROM `{$loggingDB}`.$table WHERE log_date < %1 AND log_date <> '$max_log_date' AND id = $id AND log_action= 'Update'";
-        $dao = CRM_Core_DAO::executeQuery($sql, $params);
-      
-        $sql = "DELETE FROM civicrm_log WHERE modified_date < %1 AND modified_date <> '$max_log_date' AND entity_id = $id";
-        $dao = CRM_Core_DAO::executeQuery($sql, $params);
       }
     }
   }
