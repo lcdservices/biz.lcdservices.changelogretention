@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <extension key="biz.lcdservices.changelogretention" type="module">
   <file>changelogretention</file>
-  <name>Change log retention</name>
-  <description>Exposes the changelogretention extension to store logs</description>
+  <name>Changelog retention/purging</name>
+  <description>Creates an API that can be run as a scheduled job to purge changelog records outside of the configured retention window.</description>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>Lighthouse Consulting and Design</author>
@@ -16,9 +16,9 @@
   </urls>
   <releaseDate>2018-04-07</releaseDate>
   <version>1.0</version>
-  <develStage>alpha</develStage>
+  <develStage>stable</develStage>
   <compatibility>
-    <ver>4.7</ver>
+    <ver>4.7,5.1,5.2</ver>
   </compatibility>
   <comments></comments>
   <civix>

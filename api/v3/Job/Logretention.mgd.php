@@ -12,8 +12,8 @@ return array (
     array (
       'version' => 3,
       'name' => 'Log Retention',
-      'description' => 'Call into log retention to retain log data.',
-      'run_frequency' => 'Hourly',
+      'description' => 'Purge changelog records outside of the configured retention window.',
+      'run_frequency' => 'Weekly',
       'api_entity' => 'Job',
       'api_action' => 'logretention',
       'parameters' => '',
