@@ -87,9 +87,9 @@ function civicrm_api3_job_logretention($params) {
       $dateYesterday = date('Y-m-d H:i:s', strtotime('-1 days'));
 
       $tableCompleted = CRM_Core_DAO::singleValueQuery("
-        SELECT log_id
+        SELECT id
         FROM `{$loggingDB}`.civicrm_logretention_log
-        WHERE log_date BETWEEN '{$dateNow}' AND '{$dateYesterday}'
+        WHERE log_date BETWEEN '{$dateYesterday}' AND '{$dateNow}'
           AND log_table = '{$table}'
           AND log_completed = 1
         ORDER BY id DESC
@@ -177,7 +177,7 @@ function civicrm_api3_job_logretention($params) {
       }
     }
   }
-  return civicrm_api3_create_success("Deleted log entries that were older than $retentionPeriod");
+  return civicrm_api3_create_success("Deleted log entries that were older than {$retentionPeriod} months.");
 }
 
 function _logOutput($label, $var) {
