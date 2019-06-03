@@ -17,27 +17,23 @@ class CRM_LCD_changelogretention_Upgrader extends CRM_LCD_changelogretention_Upg
     $dsn = defined('CIVICRM_LOGGING_DSN') ? DB::parseDSN(CIVICRM_LOGGING_DSN) : DB::parseDSN(CIVICRM_DSN);
     $loggingDB = $dsn['database']; //logging database
 
-    $sqls[] = array(
-      "CREATE TABLE `{$loggingDB}`.`civicrm_logretention_log` (
-        `id` int(11) NOT NULL,
-        `log_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        `log_table` varchar(128) NOT NULL,
-        `log_id` int(11) NOT NULL,
-        `log_completed` tinyint(1) NOT NULL DEFAULT '0'
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-      "ALTER TABLE `{$loggingDB}`.`civicrm_logretention_log`
-        ADD PRIMARY KEY (`id`),
-        ADD KEY `log_date` (`log_date`),
-        ADD KEY `log_table` (`log_table`),
-        ADD KEY `log_id` (`log_id`),
-        ADD KEY `log_completed` (`log_completed`);",
-      "ALTER TABLE `{$loggingDB}`.`civicrm_logretention_log`
-        MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;"
-    );
+    $sql = "
+      CREATE TABLE `{$loggingDB}`.`civicrm_logretention_log` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `log_date` timestamp NOT NULL DEFAULT current_timestamp(),
+      `log_table` varchar(128) NOT NULL,
+      `log_id` int(11) NOT NULL,
+      `log_completed` tinyint(1) NOT NULL DEFAULT 0,
+      PRIMARY KEY (`id`),
+      KEY `log_date` (`log_date`),
+      KEY `log_table` (`log_table`),
+      KEY `log_id` (`log_id`),
+      KEY `log_completed` (`log_completed`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    ";
+    //Civi::log()->debug('install', ['$sql' => $sql]);
 
-    foreach ($sqls as $sql) {
-      CRM_Core_DAO::executeQuery($sql);
-    }
+    CRM_Core_DAO::executeQuery($sql);
   }
 
   /**
