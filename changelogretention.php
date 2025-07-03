@@ -23,7 +23,6 @@ function changelogretention_civicrm_config(&$config) {
  * @param $files array(string)
  */
 function changelogretention_civicrm_xmlMenu(&$files) {
-  _changelogretention_civix_civicrm_xmlMenu($files);
 }
 
 /**
@@ -37,7 +36,7 @@ function changelogretention_civicrm_install() {
  * Implementation of hook_civicrm_uninstall
  */
 function changelogretention_civicrm_uninstall() {
-  return _changelogretention_civix_civicrm_uninstall();
+  return;
 }
 
 /**
@@ -51,7 +50,7 @@ function changelogretention_civicrm_enable() {
  * Implementation of hook_civicrm_disable
  */
 function changelogretention_civicrm_disable() {
-  return _changelogretention_civix_civicrm_disable();
+  return;
 }
 
 /**
@@ -64,7 +63,7 @@ function changelogretention_civicrm_disable() {
  *                for 'enqueue', returns void
  */
 function changelogretention_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _changelogretention_civix_civicrm_upgrade($op, $queue);
+  return;
 }
 
 /**
@@ -74,28 +73,28 @@ function changelogretention_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) 
  * is installed, disabled, uninstalled.
  */
 function changelogretention_civicrm_managed(&$entities) {
-  return _changelogretention_civix_civicrm_managed($entities);
+  return;
 }
 /**
  * Implementation of hook_civicrm_navigationMenu
  */
 function changelogretention_civicrm_navigationMenu(&$navMenu) {
-  $pages = array(
-    'settings_page' => array(
-      'label'      => 'Log Retention Settings',
-      'name'       => 'Log Retention Settings',
-      'url'        => 'civicrm/admin/logretention',
-      'parent'    => array('Administer', 'System Settings'),
+  $pages = [
+    'settings_page' => [
+      'label' => 'Log Retention Settings',
+      'name' => 'Log Retention Settings',
+      'url' => 'civicrm/admin/logretention',
+      'parent' => ['Administer', 'System Settings'],
       'permission' => 'access CiviCRM',
-      'operator'   => NULL,
-      'separator'  => NULL,
-      'active'     => 1,
-    ),
-  );
+      'operator' => NULL,
+      'separator' => NULL,
+      'active' => 1,
+    ],
+  ];
   foreach ($pages as $item) {
     // Check that our item doesn't already exist.
-    $menu_item_search = array('url' => $item['url']);
-    $menu_items = array();
+    $menu_item_search = ['url' => $item['url']];
+    $menu_items = [];
     CRM_Core_BAO_Navigation::retrieve($menu_item_search, $menu_items);
     if (empty($menu_items)) {
       $path = implode('/', $item['parent']);
@@ -112,26 +111,26 @@ function changelogretention_civicrm_navigationMenu(&$navMenu) {
 function changelogretention_civicrm_alterLogTables(&$logTableSpec) {
   $contactReferences = CRM_Dedupe_Merger::cidRefs();
   foreach (array_keys($logTableSpec) as $tableName) {
-    $contactIndexes = array();
+    $contactIndexes = [];
     $logTableSpec[$tableName]['engine'] = 'INNODB';
     $logTableSpec[$tableName]['engine_config'] = 'ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=4';
-    $contactRefsForTable = CRM_Utils_Array::value($tableName, $contactReferences, array());
+    $contactRefsForTable = CRM_Utils_Array::value($tableName, $contactReferences, []);
     foreach ($contactRefsForTable as $fieldName) {
       $contactIndexes['index_' . $fieldName] = $fieldName;
     }
-    $indexArray = array(
+    $indexArray = [
       'index_log_conn_id' => 'log_conn_id',
       'index_log_date' => 'log_date',
-    );
+    ];
     // Check if current table has an "id" column. If so, index it too
     $dsn = DB::parseDSN(CIVICRM_LOGGING_DSN);
     $dbName = $dsn['database'];
     $dao = CRM_Core_DAO::executeQuery("
       SELECT COLUMN_NAME
-      FROM   INFORMATION_SCHEMA.COLUMNS
-      WHERE  TABLE_SCHEMA = '{$dbName}'
-      AND    TABLE_NAME = '{$tableName}'
-      AND    COLUMN_NAME = 'id'
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = '{$dbName}'
+        AND TABLE_NAME = '{$tableName}'
+        AND COLUMN_NAME = 'id'
       ");
     if ($dao->fetch()){
       $indexArray['index_id'] = 'id';

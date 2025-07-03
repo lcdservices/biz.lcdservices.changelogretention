@@ -8,6 +8,6 @@
      <adminGroup>System Settings</adminGroup>
      <icon>admin/small/rela_type.png</icon>
      <weight>36</weight>
-    <access_arguments>access CiviCRM</access_arguments>
+    <access_arguments>administer CiviCRM</access_arguments>
   </item>
 </menu>
